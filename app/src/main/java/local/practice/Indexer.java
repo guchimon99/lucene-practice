@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.ja.JapaneseAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.CorruptIndexException;
@@ -23,9 +25,14 @@ public class Indexer {
     private static final int minGram = 2;
     private static final int maxGram = 4;
 
-    public Indexer (String indexDirectoryPath) throws IOException  {
+    public enum AnalyzerType {
+        JAPANESE,
+        JAPANESE_NGRAM
+    }
+
+    public Indexer (String indexDirectoryPath, AnalyzerType analyzerType) throws IOException  {
         Directory directory = FSDirectory.open(Paths.get(indexDirectoryPath));
-        JapaneseNGramAnalyzer analyzer = new JapaneseNGramAnalyzer(minGram, maxGram);
+        Analyzer analyzer = getAnalyzer(analyzerType);
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
 
         LogMergePolicy policy = new LogDocMergePolicy();
@@ -37,6 +44,16 @@ public class Indexer {
         clearIndexDirectory(indexDirectoryPath);
 
         writer = new IndexWriter(directory, config);
+    }
+
+    private Analyzer getAnalyzer(AnalyzerType analyzerType) {
+        switch (analyzerType) {
+            case JAPANESE_NGRAM:
+                return new JapaneseNGramAnalyzer(minGram, maxGram);
+            case JAPANESE:
+            default:
+                return new JapaneseAnalyzer();
+        }
     }
 
     private void clearIndexDirectory (String indexDirectoryPath) {

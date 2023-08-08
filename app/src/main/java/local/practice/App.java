@@ -10,20 +10,29 @@ import org.apache.lucene.queryparser.classic.ParseException;
 public class App {
     String indexDir = "./index/";
     String dataDir = "./data/";
-    String exportFile = "./export.txt";
+    String exportFile = "./terms.txt";
     Indexer indexer;
     Searcher searcher;
     TermExportor termExportor;
     TermViewer termViewer;
 
     public static void main(String[] args)  {
+        if (args.length < 2) {
+            System.err.println("Usage: java App <search_query> <analyzer_type>");
+            return;
+        }
+
+        String searchQuery = args[0];
+        String analyzerTypeString = args[1];
+
         App app;
         try {
             app = new App();
-            app.createIndex();
+            Indexer.AnalyzerType analyzerType = Indexer.AnalyzerType.valueOf(analyzerTypeString.toUpperCase());
+            app.createIndex(analyzerType);
             app.viewTerms();
             app.exportTerms();
-            app.search(args[0]);
+            app.search(searchQuery);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
@@ -31,8 +40,8 @@ public class App {
         }
     }
 
-    private void createIndex () throws IOException {
-        indexer  =  new Indexer(indexDir);
+    private void createIndex(Indexer.AnalyzerType analyzerType) throws IOException {
+        indexer = new Indexer(indexDir, analyzerType);
 
         int numIndexed = indexer.createIndex(dataDir);
         indexer.close();
