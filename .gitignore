@@ -16,4 +16,4 @@ local.properties
 
 # generated data
 index
-terms.txt
+terms/*.txt

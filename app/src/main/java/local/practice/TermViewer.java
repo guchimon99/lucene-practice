@@ -4,12 +4,11 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.document.Document;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TermViewer {
   private final Directory indexDirectory;
@@ -19,40 +18,30 @@ public class TermViewer {
   }
 
   public void view() throws IOException {
+    Set<String> uniqueTerms = new HashSet<>();
+
     try (IndexReader reader = DirectoryReader.open(indexDirectory)) {
       for (LeafReaderContext context : reader.leaves()) {
         LeafReader leafReader = context.reader();
         FieldInfos fieldInfos = leafReader.getFieldInfos();
         for (FieldInfo fieldInfo : fieldInfos) {
-          printTermsForField(leafReader, fieldInfo.name);
+          collectUniqueTermsForField(leafReader, fieldInfo.name, uniqueTerms);
         }
       }
     }
+
+    System.out.println("Total Unique Term Count: " + uniqueTerms.size());
   }
 
-  private void printTermsForField(LeafReader leafReader, String field) throws IOException {
+  private void collectUniqueTermsForField(LeafReader leafReader, String field, Set<String> uniqueTerms) throws IOException {
     Terms terms = leafReader.terms(field);
     if (terms == null) return;
 
     TermsEnum termsEnum = terms.iterator();
     BytesRef term;
     while ((term = termsEnum.next()) != null) {
-      printTerm(leafReader, field, term);
+      String termText = term.utf8ToString();
+      uniqueTerms.add(termText);
     }
-  }
-
-  private void printTerm(LeafReader leafReader, String field, BytesRef term) throws IOException {
-    String termText = term.utf8ToString();
-
-    // Get the postings for the term to find out which documents this term appears in
-    PostingsEnum postings = leafReader.postings(new Term(field, term));
-    List<String> filenames = new ArrayList<>();
-    int docID;
-    while ((docID = postings.nextDoc()) != PostingsEnum.NO_MORE_DOCS) {
-        Document doc = leafReader.document(docID);
-        filenames.add(doc.get("filename"));
-    }
-
-    System.out.println("Field: " + field + " - Term: " + termText + " - Filenames: " + String.join(", ", filenames));
   }
 }

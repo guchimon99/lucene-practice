@@ -1,20 +1,27 @@
 package local.practice;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+
+import local.practice.Indexer.AnalyzerType;
+
 import org.apache.lucene.queryparser.classic.ParseException;
 
 public class App {
     String indexDir = "./index/";
     String dataDir = "./data/";
-    String exportFile = "./terms.txt";
+    String termsDir = "./terms/";
+
     Indexer indexer;
     Searcher searcher;
     TermExportor termExportor;
     TermViewer termViewer;
+    AnalyzerType analyzerType;
 
     public static void main(String[] args)  {
         if (args.length < 2) {
@@ -27,9 +34,9 @@ public class App {
 
         App app;
         try {
-            app = new App();
-            Indexer.AnalyzerType analyzerType = Indexer.AnalyzerType.valueOf(analyzerTypeString.toUpperCase());
-            app.createIndex(analyzerType);
+            AnalyzerType analyzerType = AnalyzerType.valueOf(analyzerTypeString.toUpperCase());
+            app = new App(analyzerType);
+            app.createIndex();
             app.viewTerms();
             app.exportTerms();
             app.search(searchQuery);
@@ -40,8 +47,13 @@ public class App {
         }
     }
 
-    private void createIndex(Indexer.AnalyzerType analyzerType) throws IOException {
+    public App (AnalyzerType analyzerType) {
+        this.analyzerType = analyzerType;
+    }
+
+    private void createIndex() throws IOException {
         indexer = new Indexer(indexDir, analyzerType);
+        System.out.println("Using Analyzer: " + analyzerType);
 
         int numIndexed = indexer.createIndex(dataDir);
         indexer.close();
@@ -55,8 +67,12 @@ public class App {
     }
 
     private void exportTerms() throws IOException {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String formattedNow = now.format(formatter);
+
         termExportor = new TermExportor(indexDir);
-        termExportor.export(exportFile);
+        termExportor.export(termsDir + formattedNow + "_" + analyzerType + ".txt");
     }
 
     private void search (String searchQuery) throws IOException, ParseException {

@@ -23,11 +23,12 @@ import org.apache.lucene.store.FSDirectory;
 public class Indexer {
     private IndexWriter writer;
     private static final int minGram = 2;
-    private static final int maxGram = 4;
+    private static final int maxGram = 2;
 
     public enum AnalyzerType {
         JAPANESE,
-        JAPANESE_NGRAM
+        JAPANESE_NGRAM,
+        NGRAM
     }
 
     public Indexer (String indexDirectoryPath, AnalyzerType analyzerType) throws IOException  {
@@ -50,6 +51,8 @@ public class Indexer {
         switch (analyzerType) {
             case JAPANESE_NGRAM:
                 return new JapaneseNGramAnalyzer(minGram, maxGram);
+            case NGRAM:
+                return new NGramAnalyzer(minGram, maxGram);
             case JAPANESE:
             default:
                 return new JapaneseAnalyzer();
