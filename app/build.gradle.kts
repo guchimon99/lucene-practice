@@ -23,9 +23,12 @@ dependencies {
     // This dependency is used by the application.
     implementation("com.google.guava:guava:31.1-jre")
 
+    implementation("org.json:json:20230618")
+
     implementation("org.apache.lucene:lucene-core:8.11.1")
     implementation("org.apache.lucene:lucene-analyzers-common:8.11.1")
     implementation("org.apache.lucene:lucene-queryparser:8.11.1")
+    implementation("org.apache.lucene:lucene-analyzers-kuromoji:8.11.1")
 }
 
 application {

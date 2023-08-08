@@ -10,14 +10,19 @@ import org.apache.lucene.queryparser.classic.ParseException;
 public class App {
     String indexDir = "./index/";
     String dataDir = "./data/";
+    String exportFile = "./export.txt";
     Indexer indexer;
     Searcher searcher;
+    TermExportor termExportor;
+    TermViewer termViewer;
 
     public static void main(String[] args)  {
         App app;
         try {
             app = new App();
             app.createIndex();
+            app.viewTerms();
+            app.exportTerms();
             app.search(args[0]);
         } catch (IOException e) {
             e.printStackTrace();
@@ -33,6 +38,16 @@ public class App {
         indexer.close();
 
         System.out.println(numIndexed + " files indexed");
+    }
+
+    private void viewTerms () throws IOException {
+        termViewer = new TermViewer(indexDir);
+        termViewer.view();
+    }
+
+    private void exportTerms() throws IOException {
+        termExportor = new TermExportor(indexDir);
+        termExportor.export(exportFile);
     }
 
     private void search (String searchQuery) throws IOException, ParseException {

@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.CorruptIndexException;
@@ -21,10 +20,12 @@ import org.apache.lucene.store.FSDirectory;
 
 public class Indexer {
     private IndexWriter writer;
+    private static final int minGram = 2;
+    private static final int maxGram = 4;
 
     public Indexer (String indexDirectoryPath) throws IOException  {
         Directory directory = FSDirectory.open(Paths.get(indexDirectoryPath));
-        StandardAnalyzer analyzer = new StandardAnalyzer();
+        JapaneseNGramAnalyzer analyzer = new JapaneseNGramAnalyzer(minGram, maxGram);
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
 
         LogMergePolicy policy = new LogDocMergePolicy();
